@@ -8,5 +8,11 @@ namespace XBEEController
 {
     class Test
     {
+        public int Add(int a, int b)
+        {
+            //day la version 1
+            return a + b;
+
+        }
     }
 }
