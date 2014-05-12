@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace XBEEController
 {
-    class XBEE
+    public class XBEE
     {
         public string diachinhietdo = "";
         public string add = "";
