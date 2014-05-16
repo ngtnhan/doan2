@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using XBEEController;
+using System.Timers;
 
 namespace XBEEGui
 {
@@ -18,7 +19,7 @@ namespace XBEEGui
         private const string OFF_LIGHT = "Turn off Light";
         private const string CONTROL_SENSOR = "Control Sensor";
 
-
+        private  System.Timers.Timer aTimer;
         private XBEE xbee;
         private SerialPort mySerialPort;
 
@@ -38,6 +39,13 @@ namespace XBEEGui
 
             mySerialPort.DataReceived += new SerialDataReceivedEventHandler(xbee.DataReceivedHandler);
             mySerialPort.Open();
+
+            //timer
+            aTimer = new System.Timers.Timer(10000);
+            aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+            aTimer.Interval = 1000;
+            aTimer.Enabled = true;
+            
         }
 
         private void buttonControl_Click(object sender, EventArgs e)
@@ -58,7 +66,14 @@ namespace XBEEGui
 
             if (function == CONTROL_SENSOR)
             {
-               this.textBoxOutput.Text = "Nhiet do tai " + xbee.diachinhietdo + xbee.data[9];
+                if (address== 2)
+                {
+                    this.textBoxOutput.Text = "Nhiet do tai node 2 la " + xbee.node2[0];
+                }
+                if (address ==3)
+                {
+                 this.textBoxOutput.Text = "Nhiet do tai node 3 la " + xbee.node3[0];   
+                }
                return;
             }
 
@@ -92,13 +107,33 @@ namespace XBEEGui
             }
 
             byte[] codehex = xbee.ConvertHexToDecimal(code);
-            mySerialPort.Write(codehex, 0, xbee.data.Length);
+            mySerialPort.Write(codehex, 0, codehex.Length);
+            while (xbee.ack == 0)
+            {
+            }
+
+            this.textBoxOutput.Text = xbee.xacnhan;
+            xbee.ack = 0;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.textBoxOutput.Text = "Closing port...";
             this.mySerialPort.Close();
+        }
+
+        private void textBoxOutput_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
+        private void OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+
+            this.textBoxRelay2.Invoke(new Action(delegate() { textBoxRelay2.Text = xbee.trangthai2; }));
+            this.textBoxRelay3.Invoke(new Action(delegate() { textBoxRelay3.Text = xbee.trangthai3; }));
+            this.textBoxTemp2.Invoke(new Action(delegate() { textBoxTemp2.Text = xbee.node2[0] +"C"; }));
+            this.textBoxTemp3.Invoke(new Action(delegate() { textBoxTemp3.Text = xbee.node3[0] + "C"; }));
+            
         }
 
        

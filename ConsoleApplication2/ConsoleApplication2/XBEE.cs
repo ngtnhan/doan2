@@ -9,12 +9,20 @@ namespace XBEEController
 {
     public class XBEE
     {
+        public string trangthai2="";
+        public string trangthai3="";
+        public int ack = 0;
         public string diachinhietdo = "";
+        public string xacnhan = "";
+        public byte[] node2 = new byte[2];
+        public byte[] node3 = new byte[2];
         public string add = "";
         public int kt = 1;
         public int a = 0;
-        public byte[] data = new byte[11];
+        public byte[] data = new byte[12];
         public void Test()
+        
+            //public string xacnhan="";
         {
             SerialPort mySerialPort = new SerialPort("COM2");
 
@@ -30,6 +38,7 @@ namespace XBEEController
 
             while (true)
             {
+               
                 kt = 1;
                 mySerialPort.Open();
 
@@ -138,10 +147,10 @@ namespace XBEEController
                 //    {
                 //        if (chuongtrinh.data[5] == 0x00)
                 //        {
-                //            Console.WriteLine("Lenh da goi di thanh cong");
+                //           xacnhan="OK";
                 //        }
                 //        else 
-                //            Console.WriteLine("lenh goi di khong thanh cong");
+                //            xacnhan="FAILURE";
 
                 //    }
                 //    if (chuongtrinh.data[3]==0x81)
@@ -199,7 +208,7 @@ namespace XBEEController
                 //}
                 if (this.data[3] == 0x81)
                 {
-                    while (this.a < 11)
+                    while (this.a < 12)
                     {
                         indata = sp.ReadByte();
                         c = Convert.ToChar(indata);
@@ -207,21 +216,51 @@ namespace XBEEController
                         this.data[this.a] = buffer;
                         this.a++;
                     }
-                    if (this.data[8] == 0x31)//----0x31 la de goi nhiet do
+                    if (this.data[5] == 0x02)//node 2
                     {
-                        if (this.data[5] == 0x01)
+                        this.node2[0] = this.data[9];
+                        this.node2[1] = this.data[10];
+                        if (this.data[10] == 0x32)
                         {
-                            diachinhietdo = "node 1 dang la:";
-                            //Console.WriteLine("nhiet do tai " + diachi + data[9]);
+                            this.trangthai2 = "tiep diem da mo";
                         }
-                        if (this.data[5] == 0x02)
+                        else this.trangthai2 = "tiep diem da dong";
+                    }
+                    if (this.data[5] == 0x03)
+                    {
+                        this.node3[0] = this.data[9];
+                        this.node3[1] = this.data[10];
+                        if (this.data[10] == 0x32)
                         {
-                            diachinhietdo = "node 2 dang la: ";
-                            //Console.WriteLine("nhiet do tai" + diachi + data[9]);
+                            this.trangthai2 = "tiep diem da mo";
                         }
+                        else this.trangthai2 = "tiep diem da dong";
                     }
 
                 }
+                if (this.data[3] == 0x89)
+                {
+                    while (this.a < 7)
+                    {
+                        indata = sp.ReadByte();
+                        c = Convert.ToChar(indata);
+                        buffer = Convert.ToByte(c);
+                        this.data[this.a] = buffer;
+                        this.a++;
+                    }
+
+                    ack = 1;
+                    if (this.data[5] == 0x00)
+                    {
+                        xacnhan = "OK";
+                        
+                    }
+                    else
+                        xacnhan = "FAILURE";
+                    ack = 1;
+                }
+                
+
 
             }
 
