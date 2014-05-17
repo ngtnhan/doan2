@@ -1,0 +1,197 @@
+#include <msp430g2553.h>
+#include "Basic_config.h"
+#include "UART.h"
+#include<stdio.h>
+#include<string.h>
+#include<math.h>
+unsigned int t;
+unsigned char data[11];
+unsigned int i=0;
+int volthex;
+ int checksum;
+unsigned char send[12];
+int chophep;
+void decimal_hex(int n, char hex[]);
+
+#define Vref 1.65
+//#define Vref 1.5
+unsigned long adc_result, volt;
+int volt1;
+void timer_init (void)
+{
+    TACTL = TASSEL_1 + MC_2;                  // ACLK (12kHz), continuous mode
+    CCR0 = 12000;                            // cycle 12000*1/12000 = 1s
+    CCTL0 = CCIE;                            // CCR0 interrupt enabled
+}
+void ADC10_Init(void)
+{
+    ADC10CTL0 = SREF_0 + ADC10SHT_1 + ADC10ON + ADC10IE;
+
+//	ADC10CTL0=SREF_1+ ADC10SHT_0+ REFON + ADC10ON+ ADC10IE;
+    /*
+    * Vref = VCC
+    * ADC sample and hold time = 8 ADC clocks
+    * Turn on ADC10
+    * Enable ADC10 Interrupt
+    */
+    ADC10CTL1 = INCH_3 + ADC10DIV_1 + ADC10SSEL_3;
+//    ADC10CTL1 = INCH_3 + ADC10DIV_3;
+    /*
+    * Select Input chanel 3
+    * ADC10DF = 0: The 10-bit conversion results are right justified
+    * ADC10 Clock divider: 2
+    * ADC10 clock source select: SMCLK
+    */
+    ADC10AE0 |= BIT3;    //Enable analog input on A3 chanel
+}
+void main(void)
+{
+    Config_stop_WDT();
+    Config_Clocks();
+    uart_init ();
+    timer_init();
+    ADC10_Init ();
+    __enable_interrupt();
+
+    P2DIR |= BIT3; //+BIT7;//6:cts-------7:rts
+    //P2DIR &= ~BIT6;
+    P2DIR &= ~BIT4;
+    P1DIR &=~BIT6;
+    P1IE |=BIT6;
+    P1IES |=BIT6;
+    P1DIR |= BIT7;
+    P1OUT &= ~BIT7;
+    P2IE |= BIT4;
+//    P2IES |= BIT4;
+    P2OUT |= BIT3; //+BIT7 ;
+    _BIS_SR(GIE);
+    ADC10CTL0 |= ENC + ADC10SC;    //Enable ADC10, Start sample - conversion
+    delay_ms (200);
+    send[0]=0x7E;
+    send[1]=0x00;
+    send[2]=0x08;
+    send[3]=0x01;
+    send[4]=0x01;
+    send[5]=0x00;
+    send[6]=0x01;
+    send[7]=0x00;
+    send[8]=0x31;
+    send[9]=0x32;
+    send[10]=0x32;
+    send[11]=0x98;
+
+    while (1)
+    {
+    	if (P2IN & BIT4)
+    	{
+    		send[10]=0x33;
+    	}
+    	else {send[10]=0x32;}
+
+
+//    	if(P2IN & BIT4)
+//    			   {
+//    			  P2IES |= BIT4;
+//    			   }else
+//    			   {
+//    			  P2IES &= ~BIT4;
+//    			   }
+
+
+}}
+#pragma vector = USCIAB0RX_VECTOR
+__interrupt void USCI0RX_ISR(void)
+
+{data[i]=uart_getc();
+if (data[i]==0x7E)
+{
+	data[0]=0x7E;
+	i=0;
+}
+if (i<10)
+{i++;}
+else
+{i=0;
+	if (data[8]==0x31)
+	{
+		if (data[9]==0x31)
+		{P2OUT &= ~BIT3;}
+		if (data[9]==0x32)
+		{P2OUT |= BIT3;}
+	}
+//	P1OUT |= BIT7;
+}
+}
+
+
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void Timer_A (void)
+{
+	    volt = (adc_result * Vref*100 ) / 1024;    //Calculate result (= 100 * Voltage)
+//    	if ((P2IN & BIT6)==0)
+	    ADC10CTL0 |= ENC + ADC10SC;    //Enable ADC10, Start sample - conversion
+	    CCR0 += 12000;                      // Add Offset to CCR0
+}
+// ADC10 interrupt service routine
+#pragma vector = ADC10_VECTOR
+__interrupt void ADC10_Interrupt(void)
+{
+    adc_result = ADC10MEM;                    //Save Result
+}
+// interrupt edge
+//#pragma vector=PORT2_VECTOR
+//__interrupt void relay(void)
+//{
+//
+//	if (P2IFG & BIT4)
+//	{
+//	if((P2IN & BIT4)==0)
+//	{
+//		P2IES |= BIT4;
+////GND
+//		send[10]=0x32;
+//
+//
+//	}
+//	else
+//	{//vcc
+//		P2IES &= ~BIT4;
+//		send[10]= 0x33;
+//
+//	}
+//	delay_ms(40);
+//
+//	}
+// P2IFG &= ~BIT4;
+//}
+// sensor
+//
+#pragma vector=PORT1_VECTOR
+__interrupt void sensor(void)
+{
+	if (P1IFG & BIT6)
+	{
+//		ADC10AE0 &= BIT3;
+		volt1=volt;
+		checksum= 203-volt1-send[10];
+		P1OUT |= BIT7;
+		delay_ms(25);
+		uart_putc(send[0]);
+    	uart_putc(send[1]);
+    	uart_putc(send[2]);
+    	uart_putc(send[3]);
+    	uart_putc(send[4]);
+    	uart_putc(send[5]);
+    	uart_putc(send[6]);
+    	uart_putc(send[7]);
+    	uart_putc(send[8]);
+       	uart_putc(volt1);
+       	uart_putc(send[10]);
+    	uart_putc(checksum);
+
+	}
+	P1IFG &= ~BIT6;
+	P1OUT &= ~BIT7;
+
+
+}
