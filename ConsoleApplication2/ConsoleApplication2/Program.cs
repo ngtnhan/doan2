@@ -35,29 +35,7 @@ namespace XBEEController
 
 
 
-                ///-------------------------------------------------------------------------------------------------------------
 
-                //Console.ReadKey();
-
-                //if (chuongtrinh.data[0] == 0x7E)
-                //{
-                //    if (chuongtrinh.data[3] == 0x89)
-                //    {
-                //        if (chuongtrinh.data[5] == 0x00)
-                //        {
-                //            Console.WriteLine("Lenh da goi di thanh cong");
-                //        }
-                //        else 
-                //            Console.WriteLine("lenh goi di khong thanh cong");
-
-                //    }
-                //    if (chuongtrinh.data[3]==0x81)
-                //    {
-                //        //string datareceive;
-                //        Console.Write(data[8] + data[9]);
-
-                //    }
-                //}
                 mySerialPort.Close();
             }
         }

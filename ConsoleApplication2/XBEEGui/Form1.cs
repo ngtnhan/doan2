@@ -108,12 +108,12 @@ namespace XBEEGui
 
             byte[] codehex = xbee.ConvertHexToDecimal(code);
             mySerialPort.Write(codehex, 0, codehex.Length);
-            while (xbee.ack == 0)
-            {
-            }
+            //while (xbee.ack == 0)
+            //{
+            //}
 
-            this.textBoxOutput.Text = xbee.xacnhan;
-            xbee.ack = 0;
+            //this.textBoxOutput.Text = xbee.xacnhan;
+            //xbee.ack = 0;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -133,6 +133,11 @@ namespace XBEEGui
             this.textBoxRelay3.Invoke(new Action(delegate() { textBoxRelay3.Text = xbee.trangthai3; }));
             this.textBoxTemp2.Invoke(new Action(delegate() { textBoxTemp2.Text = xbee.node2[0] +"C"; }));
             this.textBoxTemp3.Invoke(new Action(delegate() { textBoxTemp3.Text = xbee.node3[0] + "C"; }));
+            if (xbee.ack == 1)
+            {
+                this.textBoxOutput.Invoke(new Action(delegate() { textBoxOutput.Text = xbee.xacnhan; }));
+                xbee.ack = 0;
+            }
             
         }
 
