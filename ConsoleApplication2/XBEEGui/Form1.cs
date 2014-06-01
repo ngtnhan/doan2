@@ -102,7 +102,7 @@ namespace XBEEGui
                 }
                 else if (function == OFF_LIGHT)
                 {
-                    code = "7E 00 07 01 01 00 02 00 31 32 97";
+                    code = "7E 00 07 01 01 00 03 00 31 32 97";
                 }
             }
 

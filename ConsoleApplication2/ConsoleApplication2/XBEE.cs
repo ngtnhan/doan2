@@ -232,9 +232,9 @@ namespace XBEEController
                         this.node3[1] = this.data[10];
                         if (this.data[10] == 0x32)
                         {
-                            this.trangthai2 = "tiep diem da mo";
+                            this.trangthai3 = "tiep diem da mo";
                         }
-                        else this.trangthai2 = "tiep diem da dong";
+                        else this.trangthai3 = "tiep diem da dong";
                     }
 
                 }
